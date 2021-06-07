@@ -14,6 +14,7 @@ class Map
         ~Map();
 
         bool getMap(const char *FileName);
+        bool ReadGridFromCsvFile(const char *FileName);
         bool CellIsTraversable (int i, int j) const;
         bool CellIsTraversable (int i, int j, int h) const;
         bool CellOnGrid (int i, int j) const;
@@ -26,6 +27,7 @@ class Map
         int**   Grid;
         int     height, width, altitude;
         int     min_altitude_limit, max_altitude_limit; // The lowest and highest possible altitude for the path
+        int     lowerbound_i, lowerbound_j, lowerbound_h;
         int     start_i, start_j, start_h;
         int     goal_i, goal_j, goal_h;
 };

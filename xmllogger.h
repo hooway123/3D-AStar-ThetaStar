@@ -25,6 +25,8 @@ public:
 
     void writeToLogPath(const NodeList &path);
 
+    //void writeToCsvFilePath(const NodeList &path);
+
     void writeToLogHPpath(const NodeList &hppath);
 
     void writeToLogNotFound();

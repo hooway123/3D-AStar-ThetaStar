@@ -3,6 +3,7 @@
 
 #include <climits>
 #include <vector>
+#include <fstream>
 #include <stdexcept>
 
 
@@ -69,6 +70,48 @@ bool Map::CellOnGrid(int i, int j, int height) const {
     return height >= min_altitude_limit && height <= max_altitude_limit && CellOnGrid(i, j);
 }
 
+bool Map::ReadGridFromCsvFile(const char *FileName) {
+    std::ifstream inFile;
+    inFile.open(FileName, std::ios::in);
+
+    int regions_num;
+    std::string str;
+    std::vector<int> boundary_points_num;
+
+    getline(inFile, str);
+
+    regions_num = atoi(str.c_str());
+
+    std::string lineStr; 
+    getline(inFile, lineStr);
+
+    std::stringstream ss(lineStr);
+    for (int i = 0; i < regions_num; i++) { 
+        getline(ss, str, ',');
+        boundary_points_num.push_back(atoi(str.c_str()));
+    }
+
+    for (int i = 0; i < regions_num; i++) {
+        for (int j = 0; j < boundary_points_num[i]; j++) {
+            getline(inFile, lineStr);
+            std::stringstream ss(lineStr); 
+
+            int x,y,z;
+            getline(ss, str, ',');
+            x = atoi(str.c_str()) - lowerbound_i;
+            getline(ss, str, ',');
+            y = atoi(str.c_str()) - lowerbound_j;
+            getline(ss, str, ',');
+            z = atoi(str.c_str()) - lowerbound_h;  
+
+            std::cout << "x: " << x << " y: " << y << " z: " << z << std::endl;
+            Grid[x][y] = z; 
+        }
+    }
+
+    return true;
+}
+
 bool Map::getMap(const char *FileName) {
     tinyxml2::XMLElement *root = 0, *map = 0, *element = 0, *mapnode;
 
@@ -77,7 +120,7 @@ bool Map::getMap(const char *FileName) {
 
     bool hasGridMem = false, hasGrid = false, hasHeight = false, hasWidth = false, hasSTX = false, hasSTY = false;
     bool hasSTZ = false, hasFINX = false, hasFINY = false, hasFINZ = false, hasSTH = false, hasFINH = false;
-    bool hasMAXALT = false, hasALTLIM = false;
+    bool hasMAXALT = false, hasALTLIM = false, hasLBX = false, hasLBY = false, hasLBZ = false;
 
     tinyxml2::XMLDocument doc;
 
@@ -125,7 +168,10 @@ bool Map::getMap(const char *FileName) {
         {
             Grid = new int *[height];
             for (int i = 0; i < height; i++)
+            {
                 Grid[i] = new int[width];
+                memset(Grid[i], 0, sizeof(int) * width);
+            }
             hasGridMem = true;
         }
 
@@ -226,7 +272,18 @@ bool Map::getMap(const char *FileName) {
                 }
             }
         }
-
+        else if (value == CNS_TAG_LBX){
+            stream >> lowerbound_i;
+            hasLBX = true;
+        }
+        else if (value == CNS_TAG_LBY){
+            stream >> lowerbound_j;
+            hasLBY = true;
+        }
+        else if (value == CNS_TAG_LBZ){
+            stream >> lowerbound_h;
+            hasLBZ = true;
+        }
             //4. Ñòàðò-Èêñ
         else if (value == CNS_TAG_STX) {
             if (!hasWidth) //Òåã "ñòàðò-õ" âñòðåòèëñÿ ðàíüøå ÷åì "øèðèíà" - îøèáêà!
@@ -379,6 +436,8 @@ bool Map::getMap(const char *FileName) {
             //Çàêîí÷èëè ñ Ôèíèø-Çåò
 
             //Ãðèä
+
+        /*
         else if (value == CNS_TAG_GRID) {
             hasGrid = true;
             if (!(hasHeight && hasWidth)) {
@@ -419,13 +478,17 @@ bool Map::getMap(const char *FileName) {
                 element = element->NextSiblingElement();
             }
         }
+        */
     }
     //Çàêîí÷èëè ñ ãðèäîì
-    if (!hasGrid)//ïðîâåðêà íà òî, ÷òî â ôàéëå íåò òåãà grid
-    {
-        std::cout << "Error! There is no tag 'grid' in xml-file!\n";
-        return false;
-    }
+    //if (!hasGrid)//ïðîâåðêà íà òî, ÷òî â ôàéëå íåò òåãà grid
+    //{
+    //    std::cout << "Error! There is no tag 'grid' in xml-file!\n";
+    //    return false;
+    //}
+
+    ReadGridFromCsvFile("/home/huhuwei/project/dataset/navigation/boundary.csv");
+
     if (!(hasFINX && hasFINY && hasSTX &&
           hasSTY))//Ïðîâåðêà íà òî, ÷òî òàê è íå óäàëîñü ñ÷èòàòü íîðìàëüíûé ñòàðò è ôèíèø.
         return false;
@@ -434,7 +497,7 @@ bool Map::getMap(const char *FileName) {
         start_h = goal_h = min_altitude_limit = max_altitude_limit = 0;
         std::cout << "Warning! Couldn't find altitude of start or finish. Map will be interpreted as a 2D.\n";
     }
-
+    
     if (Grid[start_i][start_j] > start_h) {
         std::cout << "Error! Start cell is not traversable (cell's is on a altitude " << start_h
                   << ", but obstacle has height " << Grid[start_i][start_j] << ")!" << std::endl;
@@ -464,7 +527,8 @@ bool Map::getMap(const char *FileName) {
     return true;
 }
 
-int Map::getValue(int i, int j) const {
+int Map::getValue(int i, int j) const 
+{
     if (i < 0 || i >= height)
         throw std::out_of_range("i coordinate is out of grid");
 

@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<root>
+    <desc>This file contains a task (map + start-goal location) for a pathfinder as well as some additional data</desc>
+    <map>
+        <title>Sample 3D Map</title>
+        <URL></URL>
+        <cellsize>2</cellsize>
+	<lowerboundx>-312</lowerboundx>
+	<lowerboundy>139</lowerboundy>
+	<lowerboundz>-10</lowerboundz>
+        <width>91</width>
+        <height>137</height>
+        <maxaltitude>51</maxaltitude>
+        <altitudelimits min="0" max="60"/>
+        <startx>0</startx>
+        <starty>0</starty>
+        <startz>0</startz>
+        <finishx>6</finishx>
+        <finishy>14</finishy>
+        <finishz>0</finishz>
+    </map>
+    <algorithm>
+        <searchtype>astar</searchtype>
+        <hweight>1</hweight>
+        <metrictype>euclid</metrictype>
+        <breakingties>g-max</breakingties>
+        <linecost>1</linecost>
+        <diagonalcost>1.4</diagonalcost>
+        <allowdiagonal>0</allowdiagonal>
+        <allowsqueeze>0</allowsqueeze>
+    </algorithm>
+    <options>
+        <loglevel>1</loglevel>
+        <logpath />
+        <logfilename />
+    </options>
+</root>
